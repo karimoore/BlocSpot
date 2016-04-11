@@ -9,11 +9,14 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import com.karimoore.android.blocspot.Api.DataSource;
+import com.karimoore.android.blocspot.Api.Model.Category;
 import com.karimoore.android.blocspot.Api.Model.Point;
 import com.yelp.clientlib.connection.YelpAPI;
 import com.yelp.clientlib.connection.YelpAPIFactory;
@@ -33,56 +36,122 @@ import retrofit.Retrofit;
 /**
  * Created by kari on 2/8/16.
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements CategoryFilterDialog.FilterResultsListener,
+                                                                MyListFragment.Delegate {
+
+    private static final String TAG = "MainActivity";
+
 
     private Toolbar toolbar;
     private ViewPager viewPager;
     private TabLayout tabLayout;
 
-    private List<Point> allPoints = new ArrayList<Point>();
+    private MyMapsFragment mapFragment;
+    private MyListFragment listFragment;
+
+    protected static List<Point> currentPoints = new ArrayList<Point>();
+    protected static List<Category> currentCategories = new ArrayList<Category>();
+
+
+    public static List<Point> getCurrentPoints(){
+        return currentPoints;
+    }
+    public static List<Category> getCurrentCategories(){
+        return currentCategories;
+    }
+
 
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
-
         setContentView(R.layout.activity_main);
         toolbar = (Toolbar) findViewById(R.id.tool_bar);
         setSupportActionBar(toolbar);
 
-        //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        // get data on startup-------------------------
+        BlocSpotApplication.getSharedDataSource().fetchAllPointsAndCategories(new DataSource.Callback2<List<Point>, List<Category>>() {
 
-        viewPager = (ViewPager) findViewById(R.id.viewpager);
-        setupViewPager(viewPager);
-
-        tabLayout = (TabLayout) findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(viewPager);
-
-        BlocSpotApplication.getSharedDataSource().fetchAllPoints(new DataSource.Callback<List<Point>>() {
             @Override
-            public void onSuccess(List<Point> points) {
+            public void onSuccess(List<Point> points, List<Category> categories) {
                 // add database items to local copy
-                allPoints.addAll(points);
+                currentPoints.addAll(points);
+                currentCategories.addAll(categories);
+                viewPager = (ViewPager) findViewById(R.id.viewpager);
+
+                setupViewPager(viewPager);
+
+                tabLayout = (TabLayout) findViewById(R.id.tabs);
+                tabLayout.setupWithViewPager(viewPager);
+                viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+                tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+                    @Override
+                    public void onTabSelected(TabLayout.Tab tab) {
+                        // when switching between map and list -
+                        // make sure changes are shown to user.
+                        viewPager.setCurrentItem(tab.getPosition());
+
+                        if (tab.getPosition() == 1) { //LIST
+                            listFragment.update(getCurrentPoints());
+                        } else {
+                            mapFragment.update(getCurrentPoints());
+                        }
+                    }
+
+                    @Override
+                    public void onTabUnselected(TabLayout.Tab tab) {
+
+                    }
+
+                    @Override
+                    public void onTabReselected(TabLayout.Tab tab) {
+
+                    }
+                });
+
             }
 
             @Override
             public void onError(String errorMessage) {
-
+                Toast.makeText(MainActivity.this, "Did not get the correct points", Toast.LENGTH_SHORT).show();
             }
         });
 
 
+
+        //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+
     }
+
 
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
-        adapter.addFragment(new MyMapsFragment(), "MAP");
-        adapter.addFragment(new MyListFragment(), "LIST");
+        mapFragment = MyMapsFragment.newInstance(currentPoints, currentCategories);
+        listFragment = MyListFragment.newInstance(currentPoints, currentCategories);
+        adapter.addFragment(mapFragment, "MAP");
+        adapter.addFragment(listFragment, "LIST");
         viewPager.setAdapter(adapter);
+
+
     }
 
+    public void onCheckboxClicked(View view) {
+        Toast.makeText(MainActivity.this, "a Checkbox is clicked ", Toast.LENGTH_SHORT).show();
+    }
+
+    //-------------------MyListFragment.Delegate---------------
+    @Override
+    public void onItemLongClicked() {
+
+        Log.d(TAG, "I am in the MainActivity and can make DB updates for the longClick");
+        showAssignCategoryDialog();
+    }
+    //---------------------------------------------------------
+
+
+    //----------------------------------------------------------------
     class ViewPagerAdapter extends FragmentPagerAdapter {
         private final List<Fragment> mFragmentList = new ArrayList<>();
         private final List<String> mFragmentTitleList = new ArrayList<>();
@@ -177,10 +246,51 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
             call.enqueue(searchResponseCallback);
+        } else if (item.getItemId() == R.id.action_filter){
+            // Show Category Dialog
+            Toast.makeText(MainActivity.this, "User allowed to perform filter", Toast.LENGTH_SHORT).show();
+            showFilterCategoryDialog();
+
         }
 
              return super.onOptionsItemSelected(item);
     }
+
+    public void showFilterCategoryDialog() {
+        CategoryFilterDialog newFragment = new CategoryFilterDialog();
+        newFragment.show(getSupportFragmentManager(), "filterCategory");
+        newFragment.setFilterResultsListener(this);
+    }
+    public void showAssignCategoryDialog() {
+        CategoryAddDialog newFragment = new CategoryAddDialog();
+        newFragment.show(getSupportFragmentManager(), "assignCategory");
+        //newFragment.setChangeCategoryListener(this);
+    }
+    @Override
+    public void getFilterResults(List<String> categoryIds) {
+        Toast.makeText(MainActivity.this, "Filter these ids: " + categoryIds.get(0), Toast.LENGTH_SHORT).show();
+        BlocSpotApplication.getSharedDataSource().fetchFilteredPoints(categoryIds, new DataSource.Callback<List<Point>>() {
+            @Override
+            public void onSuccess(List<Point> points) {
+                // how do I know if the list or the map is active???
+                // list fragment.update currentPoints, currentCategories
+                // map fragment
+                boolean mapVisible = mapFragment.getUserVisibleHint();
+                currentPoints.clear();
+                currentPoints.addAll(points);
+                mapFragment.update(points);
+                listFragment.update(points);
+
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Log.d(TAG, "error in filtering: " + errorMessage);
+            }
+        });
+    }
+
+
 }
 
 

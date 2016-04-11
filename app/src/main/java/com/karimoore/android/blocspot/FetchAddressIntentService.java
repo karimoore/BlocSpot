@@ -23,9 +23,11 @@ import java.util.Locale;
  * TODO: Customize class - update intent actions, extra parameters and static
  * helper methods.
  */
+
 public class FetchAddressIntentService extends IntentService {
     private static final String TAG = "FetchAddressIntentServ";
     protected ResultReceiver mReceiver;
+
 
     // TODO: Rename actions, choose action names that describe tasks that this
     // IntentService can perform, e.g. ACTION_FETCH_NEW_ITEMS

@@ -6,6 +6,15 @@
         android:orderInCategory="200"
         android:title="Search"
         android:icon="@drawable/ic_search"
-        app:showAsAction="ifRoom"
-        ></item>
+        app:showAsAction="ifRoom">
+
+    </item>
+    <item
+        android:id="@+id/action_filter"
+        android:orderInCategory="201"
+        android:title="Filter"
+        android:icon="@drawable/ic_filter_list_white_24dp"
+        app:showAsAction="ifRoom">
+
+    </item>
 </menu>

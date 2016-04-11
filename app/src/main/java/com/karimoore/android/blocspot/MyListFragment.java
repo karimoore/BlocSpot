@@ -1,5 +1,7 @@
 package com.karimoore.android.blocspot;
 
+import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -9,22 +11,52 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.karimoore.android.blocspot.Api.DataSource;
+import com.karimoore.android.blocspot.Api.Model.Category;
 import com.karimoore.android.blocspot.Api.Model.Point;
 
+import java.io.Serializable;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by kari on 2/8/16.
  */
-public class MyListFragment extends Fragment {
+public class MyListFragment extends Fragment implements MyAdapter.Delegate {
+
+    public static interface Delegate {
+        public void onItemLongClicked();
+        //public void onItemContracted(RssItemListFragment rssItemListFragment, RssItem rssItem);
+    }
+    private WeakReference<Delegate> delegate;
 
     private RecyclerView mRecyclerView;
-    private RecyclerView.Adapter mAdapter;
+    //private RecyclerView.Adapter mAdapter;
+    private MyAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
 
-    private List<Point> currentPoints = new ArrayList<Point>();
+
+    public static List<Point> listPoints = new ArrayList<>();
+    public static List<Category> listCategories = new ArrayList<>();
+    public static final MyListFragment newInstance(List<Point> points, List<Category> categories)
+    {
+        listPoints.addAll(points);
+        listCategories.addAll(categories);
+        MyListFragment f = new MyListFragment();
+        Bundle localBundle = new Bundle(2);
+        localBundle.putSerializable("POINTS", (Serializable) listPoints);
+        localBundle.putSerializable("CATEGORY", (Serializable) listCategories);
+        f.setArguments(localBundle);
+        return f;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        Activity activity = getActivity();
+        delegate = new WeakReference<Delegate>((Delegate) activity);
+    }
 
     @Nullable
     @Override
@@ -42,6 +74,7 @@ public class MyListFragment extends Fragment {
 
         // specify an adapter (see also next example)
 
+/*
         // create a fake array of strings
         BlocSpotApplication.getSharedDataSource().fetchAllPoints(new DataSource.Callback<List<Point>>() {
             @Override
@@ -54,12 +87,28 @@ public class MyListFragment extends Fragment {
 
             }
         });
-        //String[] fakeData = new String[]{"Willis Tower", "Art Institute", "Wrigley", "Soldiers Field", "501 Boardman", "The bean"};
-        mAdapter = new MyAdapter(currentPoints);
+*/
+        mAdapter = new MyAdapter(listPoints, listCategories);
+        mAdapter.setDelegate(this);
         mRecyclerView.setAdapter(mAdapter);
 
         return v;
     }
 
 
+
+    public void update(List<Point> points) {
+        //Clear existing items
+        listPoints.clear();
+        listPoints.addAll(points);
+        ((MyAdapter)mAdapter).update(points);
+    }
+
+    //=---------------------MyAdapter.Delegate--------------
+    @Override
+    public void onLongClick() {
+        delegate.get().onItemLongClicked();
+
+    }
+    //--------------------------------------------------------
 }

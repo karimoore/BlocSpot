@@ -28,13 +28,22 @@ public abstract class Table {
         return getLong(cursor, COLUMN_ID);
     }
 
-    protected static long getLong(Cursor cursor, String column){
+    protected static long getLong(Cursor cursor, String column) {
         int colIndex = cursor.getColumnIndex(column);
         if (colIndex == -1) {
             return -1l;
         }
         return cursor.getLong(colIndex);
     }
+
+    protected static int getInt(Cursor cursor, String column){
+        int colIndex = cursor.getColumnIndex(column);
+        if (colIndex == -1) {
+            return -1;
+        }
+        return cursor.getInt(colIndex);
+    }
+
     protected static double getDouble(Cursor cursor, String column){
         int colIndex = cursor.getColumnIndex(column);
         if (colIndex == -1) {
@@ -49,7 +58,16 @@ public abstract class Table {
         }
         return cursor.getString(colIndex);
     }
-    public static interface Builder {
+    protected static boolean getBoolean(Cursor cursor, String column) {
+        int colIndex = cursor.getColumnIndex(column);
+        if (colIndex == -1) {
+            return false;
+        }
+        return (cursor.getString(colIndex).equals("1")) ? true : false;
+    }
+
+
+        public static interface Builder {
 
         public long insert(SQLiteDatabase writableDB);
     }
