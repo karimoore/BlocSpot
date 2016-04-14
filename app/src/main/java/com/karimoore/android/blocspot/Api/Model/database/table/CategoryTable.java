@@ -23,7 +23,7 @@ public class CategoryTable extends Table {
     public String getCreateStatement() {
         return "CREATE TABLE " + getName() + " ("
                 + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-                + COLUMN_NAME + " TEXT, "
+                + COLUMN_NAME + " TEXT UNIQUE, "
                 + COLUMN_MARKER_COLOR + " TEXT, "
                 + COLUMN_BACK_COLOR + " TEXT)";
 

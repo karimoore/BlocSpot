@@ -25,7 +25,7 @@ import java.util.List;
 public class MyListFragment extends Fragment implements MyAdapter.Delegate {
 
     public static interface Delegate {
-        public void onItemLongClicked();
+        public void onItemLongClicked(int rowId);
         //public void onItemContracted(RssItemListFragment rssItemListFragment, RssItem rssItem);
     }
     private WeakReference<Delegate> delegate;
@@ -74,20 +74,6 @@ public class MyListFragment extends Fragment implements MyAdapter.Delegate {
 
         // specify an adapter (see also next example)
 
-/*
-        // create a fake array of strings
-        BlocSpotApplication.getSharedDataSource().fetchAllPoints(new DataSource.Callback<List<Point>>() {
-            @Override
-            public void onSuccess(List<Point> points) {
-                currentPoints = points;
-            }
-
-            @Override
-            public void onError(String errorMessage) {
-
-            }
-        });
-*/
         mAdapter = new MyAdapter(listPoints, listCategories);
         mAdapter.setDelegate(this);
         mRecyclerView.setAdapter(mAdapter);
@@ -101,13 +87,20 @@ public class MyListFragment extends Fragment implements MyAdapter.Delegate {
         //Clear existing items
         listPoints.clear();
         listPoints.addAll(points);
-        ((MyAdapter)mAdapter).update(points);
+        ((MyAdapter)mAdapter).update(points);  // TO DO (retest)this crashes when SC from map to list??
+    }
+
+    public void updateCategories(List<Category> categories){
+        listCategories.clear();
+        listCategories.addAll(categories);
+        mAdapter.updateCategories(categories);
     }
 
     //=---------------------MyAdapter.Delegate--------------
     @Override
-    public void onLongClick() {
-        delegate.get().onItemLongClicked();
+    public void onLongClick(int rowId) {
+        delegate.get().onItemLongClicked(rowId);
+
 
     }
     //--------------------------------------------------------

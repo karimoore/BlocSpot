@@ -93,7 +93,7 @@ public class GenericCategoryDialogFragment extends DialogFragment {
     public void createRow(int row, int color, String name){
         if (row == -1) {
             //adding by user to end of list
-            row = allCategories.size();
+            row = allCategories.size() - 1;
         }
         LinearLayout ll = new LinearLayout(getContext());
         ll.setOrientation(LinearLayout.HORIZONTAL);

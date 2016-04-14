@@ -26,7 +26,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
 
     public static interface Delegate {
        //public void onItemClicked(ItemAdapter itemAdapter, RssItem rssItem);
-        public void onLongClick();
+        public void onLongClick(int rowId);
     }
 
 
@@ -100,7 +100,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
 */
             //newFragment.setFilterResultsListener(this);
             if (getDelegate() != null)
-                getDelegate().onLongClick();
+                getDelegate().onLongClick(rowId);
 
             return true;
         }
@@ -116,6 +116,11 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
         mDataset.clear();
         mDataset.addAll(points);
         notifyDataSetChanged();
+    }
+    public void updateCategories(List<Category> categories){
+        adapterCategories.clear();
+        adapterCategories.addAll(categories);
+        //notifyDataSetChanged();
     }
     // Create new views (invoked by the layout manager)
     @Override

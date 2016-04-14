@@ -28,7 +28,7 @@ public class PointTable extends Table {
     public String getCreateStatement() {
         return "CREATE TABLE " + getName() + " ("
                 + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-                + COLUMN_NAME + " TEXT, "
+                + COLUMN_NAME + " TEXT UNIQUE, "
                 + COLUMN_LAT + " TEXT, "
                 + COLUMN_LONG + " TEXT, "
                 + COLUMN_VISIT + " TEXT, "
@@ -73,6 +73,31 @@ public class PointTable extends Table {
         public long insert(SQLiteDatabase writableDB) {
             return writableDB.insert(NAME, null, values);
         }
+    }
+
+/*
+    ContentValues cv = new ContentValues();
+    cv.put(KEY_CUR_LEVEL, level);
+
+    mDb.update(DATABASE_TABLE, cv, "? = ?", new String[] { KEY_NAME, "Default"});
+
+
+First make a ContentValues object :
+
+ContentValues cv = new ContentValues();
+cv.put("Field1","Bob"); //These Fields should be your String values of actual column names
+cv.put("Field2","19");
+cv.put("Field2","Male");
+Then use the update method, it should work now:
+
+myDB.update(TableName, cv, "_id="+id, null);
+*/
+    public static int updateCategoryColumn(SQLiteDatabase writableDatabase, int categoryId, int rowId){
+        ContentValues cv = new ContentValues();
+        cv.put(COLUMN_CATEGORYID, String.valueOf(categoryId));
+        String whereClause = COLUMN_ID+ "=" + rowId;
+        return writableDatabase.update(NAME, cv, whereClause, null);
+
     }
 
     public static Cursor fetchAllPoints( SQLiteDatabase readOnlyDatabase){

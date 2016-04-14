@@ -12,7 +12,6 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Toast;
 
 import com.karimoore.android.blocspot.Api.DataSource;
@@ -37,7 +36,8 @@ import retrofit.Retrofit;
  * Created by kari on 2/8/16.
  */
 public class MainActivity extends AppCompatActivity implements CategoryFilterDialog.FilterResultsListener,
-                                                                MyListFragment.Delegate {
+                                                                MyListFragment.Delegate,
+                                                                CategoryAddDialog.AddCategoryListener{
 
     private static final String TAG = "MainActivity";
 
@@ -137,17 +137,15 @@ public class MainActivity extends AppCompatActivity implements CategoryFilterDia
 
     }
 
-    public void onCheckboxClicked(View view) {
-        Toast.makeText(MainActivity.this, "a Checkbox is clicked ", Toast.LENGTH_SHORT).show();
-    }
 
     //-------------------MyListFragment.Delegate---------------
     @Override
-    public void onItemLongClicked() {
+    public void onItemLongClicked(int rowId) {
 
         Log.d(TAG, "I am in the MainActivity and can make DB updates for the longClick");
-        showAssignCategoryDialog();
+        showAssignCategoryDialog(rowId);
     }
+
     //---------------------------------------------------------
 
 
@@ -256,15 +254,57 @@ public class MainActivity extends AppCompatActivity implements CategoryFilterDia
              return super.onOptionsItemSelected(item);
     }
 
+    public void showAssignCategoryDialog(int rowId) {
+        CategoryAddDialog newFragment = new CategoryAddDialog();
+        newFragment.show(getSupportFragmentManager(), "assignCategory");
+        newFragment.setChangeCategoryListener(this, rowId);
+    }
+
+    @Override
+    public void newCategoryForPoint(int categoryId, int pointId) {
+        // update the database for pointID  with a new categoryId
+        BlocSpotApplication.getSharedDataSource().updateCategoryForPoint(categoryId, pointId);
+        BlocSpotApplication.getSharedDataSource().fetchAllPoints(new DataSource.Callback<List<Point>>() {
+            @Override
+            public void onSuccess(List<Point> points) {
+                currentPoints.clear();
+                currentPoints.addAll(points);
+                mapFragment.updateCategories(getCurrentCategories());
+                mapFragment.update(points);
+                listFragment.updateCategories(getCurrentCategories());
+                listFragment.update(points);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+
+            }
+        });
+
+    }
+
+    @Override
+    public void newCategoryAddedByUser() {
+        BlocSpotApplication.getSharedDataSource().fetchAllCategories(new DataSource.Callback<List<Category>>() {
+            @Override
+            public void onSuccess(List<Category> categories) {
+                currentCategories.clear();
+                currentCategories.addAll(categories);
+                listFragment.updateCategories(categories);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+
+            }
+        });
+
+    }
+
     public void showFilterCategoryDialog() {
         CategoryFilterDialog newFragment = new CategoryFilterDialog();
         newFragment.show(getSupportFragmentManager(), "filterCategory");
         newFragment.setFilterResultsListener(this);
-    }
-    public void showAssignCategoryDialog() {
-        CategoryAddDialog newFragment = new CategoryAddDialog();
-        newFragment.show(getSupportFragmentManager(), "assignCategory");
-        //newFragment.setChangeCategoryListener(this);
     }
     @Override
     public void getFilterResults(List<String> categoryIds) {
@@ -272,9 +312,6 @@ public class MainActivity extends AppCompatActivity implements CategoryFilterDia
         BlocSpotApplication.getSharedDataSource().fetchFilteredPoints(categoryIds, new DataSource.Callback<List<Point>>() {
             @Override
             public void onSuccess(List<Point> points) {
-                // how do I know if the list or the map is active???
-                // list fragment.update currentPoints, currentCategories
-                // map fragment
                 boolean mapVisible = mapFragment.getUserVisibleHint();
                 currentPoints.clear();
                 currentPoints.addAll(points);

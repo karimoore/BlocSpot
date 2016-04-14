@@ -108,6 +108,15 @@ public class DataSource {
         }).start();
     }
 
+    public void updateCategoryForPoint(int catId, int rowId){
+
+        // update the roweId in Table Point and change the categoryId column to the new catId
+        int updated = PointTable.updateCategoryColumn(databaseOpenHelper.getWritableDatabase(), catId, rowId);
+
+    }
+
+
+
     public void fetchFilteredPoints(List<String> filterIds, final Callback<List<Point>> callback){
         // perform the db query on separate thread
         final List<Point> resultPoint = new ArrayList<Point>();

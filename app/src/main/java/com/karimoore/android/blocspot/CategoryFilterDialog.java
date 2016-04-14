@@ -24,7 +24,7 @@ public class CategoryFilterDialog extends GenericCategoryDialogFragment {
 
     ImageButton titleImageButton;
 
-    List<String> filters;
+    //List<String> filters;
 
     private FilterResultsListener listener;
 
@@ -50,7 +50,7 @@ public class CategoryFilterDialog extends GenericCategoryDialogFragment {
         titleImageButton = (ImageButton) titleView.findViewById(R.id.category_titlebar_add_bn);
         titleImageButton.setVisibility(View.GONE);
 
-        filters = new ArrayList<>(chkBoxIdList.size());
+        //filters = new ArrayList<>(chkBoxIdList.size());
         for (int i = 0; i < chkBoxIdList.size(); i++) {
             ((CheckBox) chkBoxIdList.get(i).findViewById(chkBoxIdList.get(i).getId())).setOnClickListener(new View.OnClickListener() {
                 @Override

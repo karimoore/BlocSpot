@@ -82,6 +82,11 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
         mMap.clear();
         addMarkers(points);
     }
+    public void updateCategories(List<Category> categories) {
+        // This is when we need to change the list and map to the new list
+        mCategories.clear();
+        mCategories.addAll(categories);
+    }
 
 
     public class AddressResultReceiver extends ResultReceiver {
