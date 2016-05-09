@@ -211,4 +211,16 @@ public class DataSource {
 
 
     }
+    public void addPoint (Point point){
+        SQLiteDatabase writableDatabase = databaseOpenHelper.getWritableDatabase();
+
+        new PointTable.Builder()
+                .setName(point.getName())
+                .setLatitude(String.valueOf(point.getLatitude()))
+                .setLongitude(String.valueOf(point.getLongitude()))
+                .setCategoryId(String.valueOf(point.getCatId()))
+                .setVisited("0")
+                .insert(writableDatabase);
+
+    }
 }

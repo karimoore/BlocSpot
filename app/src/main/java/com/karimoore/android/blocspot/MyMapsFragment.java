@@ -1,6 +1,8 @@
 package com.karimoore.android.blocspot;
 
 import android.Manifest;
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -18,6 +20,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -35,25 +39,46 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.karimoore.android.blocspot.Api.Model.Category;
 import com.karimoore.android.blocspot.Api.Model.Point;
+import com.karimoore.android.blocspot.Api.Model.YelpPoint;
 
 import java.io.Serializable;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+
+import static com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_BLUE;
 
 public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
+        LocationListener,
+        GoogleMap.OnMarkerClickListener{
 
     private static final String TAG = "MyMapsFragment";
+    public static interface Delegate {
+        public void addYelpPoint(Point point);
+    }
+    private WeakReference<Delegate> delegate;
 
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
+    public Location getLastLocation() {
+        return mLastLocation;
+    }
+
     String mCurrentAddress;
+
+    private HashMap<String, YelpPoint> markersToYelpPoint = new HashMap<String, YelpPoint>(); // maps the marker to the info
+    Bundle bundle; // used to call popupdialog from mapmarker  see OnMarkerClicked
+    AlertDialog popup;
+
+
     private LocationRequest mLocationRequest;
     private boolean mRequestingLocationUpdates;
     private AddressResultReceiver mResultReceiver;
@@ -87,6 +112,12 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
         mCategories.clear();
         mCategories.addAll(categories);
     }
+
+    public void updateYelpPoints(List<YelpPoint> points) {
+        Log.d(TAG, "Updating the yelp data to the map.");
+        addYelpMarkers(points);
+    }
+
 
 
     public class AddressResultReceiver extends ResultReceiver {
@@ -136,12 +167,20 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
     }
 
     @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        Activity activity = getActivity();
+        delegate = new WeakReference<Delegate>((Delegate) activity);
+    }
+
+    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         // Empty list for storing geofences.
         mGeofenceList = new ArrayList<Geofence>();
         mGeofencePendingIntent = null;
+        bundle = savedInstanceState;
 
     }
 
@@ -198,19 +237,97 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
 
 
     void addMarkers(List<Point> points){
+
+        // if category id is -1 = a category has not been assigned.
         List<Category> categories = new ArrayList<Category>();
         categories.addAll(mCategories);
         for (int i = 0; i < points.size(); i++) {
             LatLng pointOfInterest = new LatLng(points.get(i).getLatitude(), points.get(i).getLongitude());
-            mMap.addMarker(
+            float markerColor;
+            if (points.get(i).getCatId() == -1) {
+                markerColor= HUE_BLUE;
+            }
+            else {
+                markerColor = categories.get((int) points.get(i).getCatId() - 1).getMarkerColor();
+            }
+                    mMap.addMarker(
                     new MarkerOptions()
                             .position(pointOfInterest)
                             .title(points.get(i).getName() + String.valueOf(i))
-                            .icon(BitmapDescriptorFactory.defaultMarker(categories.get((int) points.get(i).getCatId() - 1).getMarkerColor())));
+                            .icon(BitmapDescriptorFactory.defaultMarker(markerColor)));
             mMap.moveCamera(CameraUpdateFactory.newLatLng(pointOfInterest));
 
         }
 
+    }
+    void addYelpMarkers(List<YelpPoint> points){
+        mMap.setOnMarkerClickListener(this);
+
+        // No yelp point has a category yet
+
+        for (int i = 0; i < points.size(); i++) {
+            LatLng pointOfInterest = new LatLng(points.get(i).getLatitude(), points.get(i).getLongitude());
+            Marker m = mMap.addMarker(
+                    new MarkerOptions()
+                            .position(pointOfInterest)
+                            .title(points.get(i).getName() + String.valueOf(i))
+                            .icon(BitmapDescriptorFactory.defaultMarker(HUE_BLUE)));
+            // need to map marker to Point
+            String id = m.getId();  // map string to Point
+            markersToYelpPoint.put(m.getId(), points.get(i));
+
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(pointOfInterest));
+
+        }
+
+    }
+//-------------OnMarkerClickListener-------------
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        final String id = marker.getId();
+        Log.d(TAG, "Clicked on " + id);
+        if (markersToYelpPoint.get(id) != null) {
+            LayoutInflater inflater = getLayoutInflater(bundle);
+
+            // Inflate and set the layout for the dialog
+            // Pass null as the parent view because its going in the dialog layout
+            View view = inflater.inflate(R.layout.details_point_on_map_dialog, null);
+            TextView description = (TextView) view.findViewById(R.id.description);
+            description.setText(markersToYelpPoint.get(id).getDisplayAddress());
+            Button addButton = (Button) view.findViewById(R.id.details_add_button);
+            addButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d(TAG, "The yelp item to be added to db is: " + id +
+                            "and the name is: " + markersToYelpPoint.get(id).getName());
+                    // add yelp point to database
+                    // update the map with new points
+                    Point point = new Point(-1, markersToYelpPoint.get(id).getName(),
+                            markersToYelpPoint.get(id).getLatitude(),
+                            markersToYelpPoint.get(id).getLongitude(),
+                            false, -1);
+                    delegate.get().addYelpPoint(point);
+                    popup.dismiss();
+                    //  turn off onclicklistener
+                    mMap.setOnMarkerClickListener(null);
+
+
+                }
+            });
+
+            popup = new AlertDialog.Builder(getContext()).create();
+            popup.setView(view);
+            popup.setTitle(markersToYelpPoint.get(id).getName());
+            popup.show();
+        } else {
+            Log.d(TAG, "Clicked on a NON yelp point, don't give option to add to BlocSpot, already there");
+        }
+
+        return false;
+    }
+
+    public void clearSearchListener(){
+        mMap.setOnMarkerClickListener(null);
     }
 
     @Override
@@ -427,6 +544,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
      */
     private GeofencingRequest getGeofencingRequest() {
         GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
+
+        // -----Getting this error on start:
+        // -----java.lang.IllegalArgumentException: No geofence has been added to this request.
 
         // The INITIAL_TRIGGER_ENTER flag indicates that geofencing service should trigger a
         // GEOFENCE_TRANSITION_ENTER notification when the geofence is added and if the device

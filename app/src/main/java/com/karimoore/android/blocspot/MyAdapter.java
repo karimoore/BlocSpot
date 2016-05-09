@@ -1,5 +1,6 @@
 package com.karimoore.android.blocspot;
 
+import android.graphics.Color;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -153,7 +154,15 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
 
         //// get the category information
         long catId = mDataset.get(position).getCatId();
-        final int backgroundColor = adapterCategories.get((int) (catId-1)).getBackgroundColor();
+        final int backgroundColor;
+        if (catId == -1) {
+            // no category assigned yet, may have a YELP item
+            backgroundColor = Color.BLUE;
+
+        }
+        else {
+            backgroundColor = adapterCategories.get((int) (catId-1)).getBackgroundColor();
+        }
         // given catId - get color
 
         //----------------------------
@@ -168,7 +177,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
         }
 
         holder.visitedButton.setBackgroundColor(backgroundColor);
-        holder.visitedButton.setImageResource(resource);
+        holder.visitedButton.setImageResource(resource); // error when passed a color resource id, instead of drawable
         holder.visitedButton.setTag(mDataset.get(position));
         holder.visitedButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -180,7 +189,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
                     holder.visitedButton.setBackgroundColor(backgroundColor);
                     holder.visitedButton.setImageResource(R.drawable.checkmark);
                 } else {
-                    holder.visitedButton.setImageResource(backgroundColor);
+                    holder.visitedButton.setImageResource(backgroundColor); //needs a resource id of drawable not color.
                 }
                 holder.visitedButton.setTag(mDataset.get(pos));
                 //UPDATE DATABASE  when?

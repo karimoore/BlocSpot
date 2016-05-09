@@ -12,4 +12,6 @@
     <string name="cat_filter_title">Set a filter</string>
     <string name="cat_add_positive_action">Assign</string>
     <string name="cat_filter_positive_action">Filter</string>
+    <string name="app_label">Bloc Spot</string>
+    <string name="search_hint">Search something</string>
 </resources>

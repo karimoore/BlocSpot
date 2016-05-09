@@ -89,6 +89,11 @@ public class MyListFragment extends Fragment implements MyAdapter.Delegate {
         listPoints.addAll(points);
         ((MyAdapter)mAdapter).update(points);  // TO DO (retest)this crashes when SC from map to list??
     }
+    public void updateYelpPoints(List<Point> points) {
+        //Add to existing items
+        listPoints.addAll(points);
+        ((MyAdapter)mAdapter).update(points);
+    }
 
     public void updateCategories(List<Category> categories){
         listCategories.clear();

@@ -14,6 +14,7 @@ public class Point extends Model implements Serializable{
 
 
 
+
     public Point(long rowId, String name, double latitude, double longitude, boolean visited, long catId) {
         super(rowId);
         this.name = name;
