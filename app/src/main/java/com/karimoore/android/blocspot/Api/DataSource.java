@@ -40,15 +40,16 @@ public class DataSource {
     private CategoryTable categoryTable;
     private Table[] tables;
 
-    public DataSource(){
+    public DataSource() {
 
         pointTable = new PointTable();
         categoryTable = new CategoryTable();
         tables = new Table[]{pointTable, categoryTable};
         databaseOpenHelper = new DatabaseOpenHelper(BlocSpotApplication.getSharedInstance(),
                 tables);
+    //}
 
-        new Thread(new Runnable() {
+       new Thread(new Runnable() {
             @Override
             public void run() {
 
@@ -81,6 +82,7 @@ public class DataSource {
                         .setLongitude("-88")
                         .setCategoryId("1")
                         .setVisited("0")
+                        .setNote("I like this restaurant")
                         .insert(writableDatabase);
                 new PointTable.Builder()
                         .setName("bar")
@@ -88,6 +90,7 @@ public class DataSource {
                         .setLongitude("-88")
                         .setCategoryId("2")
                         .setVisited("0")
+                        .setNote("Good Martinis!")
                         .insert(writableDatabase);
                 new PointTable.Builder()
                         .setName("store")
@@ -95,6 +98,7 @@ public class DataSource {
                         .setLongitude("-88")
                         .setCategoryId("3")
                         .setVisited("0")
+                        .setNote("shoe selection is great")
                         .insert(writableDatabase);
                 new PointTable.Builder()
                         .setName("restaurant2")
@@ -102,6 +106,7 @@ public class DataSource {
                         .setLongitude("-88")
                         .setCategoryId("1")
                         .setVisited("0")
+                        .setNote("Ribs!!")
                         .insert(writableDatabase);
 
             }
@@ -174,7 +179,8 @@ public class DataSource {
 
     static Point pointFromCursor(Cursor cursor){
         return new Point(Table.getRowId(cursor),PointTable.getName(cursor),PointTable.getLat(cursor),
-                PointTable.getLong(cursor), PointTable.getVisited(cursor), PointTable.getCategoryId(cursor));
+                PointTable.getLong(cursor), PointTable.getVisited(cursor), PointTable.getCategoryId(cursor),
+                PointTable.getNote(cursor));
 
     }
     public void fetchAllCategories( final Callback<List<Category>> callback){
@@ -219,8 +225,21 @@ public class DataSource {
                 .setLatitude(String.valueOf(point.getLatitude()))
                 .setLongitude(String.valueOf(point.getLongitude()))
                 .setCategoryId(String.valueOf(point.getCatId()))
-                .setVisited("0")
+                .setVisited("0")  // not established yet, user will add later
+                .setNote(point.getNote())
                 .insert(writableDatabase);
+
+    }
+    public void updateNoteForPoint(int rowId, String note){
+
+        // update the roweId in Table Point and change the note column to the new note
+        int updated = PointTable.updateNoteColumn(databaseOpenHelper.getWritableDatabase(), rowId, note);
+
+    }
+    public void updateVisitedForPoint(int rowId, boolean visited){
+
+        // update the roweId in Table Point and change the note column to the new note
+        int updated = PointTable.updateVisitedColumn(databaseOpenHelper.getWritableDatabase(), rowId, visited);
 
     }
 }

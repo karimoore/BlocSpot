@@ -16,6 +16,7 @@ public class PointTable extends Table {
     private static final String COLUMN_LONG = "longitude";
     private static final String COLUMN_VISIT = "visited";
     private static final String COLUMN_CATEGORYID = "category_id";
+    private static final String COLUMN_NOTE = "note";
     private static final String NAME = "point";
 
 
@@ -32,7 +33,8 @@ public class PointTable extends Table {
                 + COLUMN_LAT + " TEXT, "
                 + COLUMN_LONG + " TEXT, "
                 + COLUMN_VISIT + " TEXT, "
-                + COLUMN_CATEGORYID + " TEXT)";
+                + COLUMN_CATEGORYID + " TEXT, "
+                + COLUMN_NOTE + " TEXT)";
     }
 
     @Override
@@ -67,6 +69,10 @@ public class PointTable extends Table {
             values.put(COLUMN_CATEGORYID, catId);
             return this;
         }
+        public Builder setNote(String note) {
+            values.put(COLUMN_NOTE, note);
+            return this;
+        }
 
 
         @Override
@@ -92,9 +98,24 @@ Then use the update method, it should work now:
 
 myDB.update(TableName, cv, "_id="+id, null);
 */
-    public static int updateCategoryColumn(SQLiteDatabase writableDatabase, int categoryId, int rowId){
+public static int updateCategoryColumn(SQLiteDatabase writableDatabase, int categoryId, int rowId){
+    ContentValues cv = new ContentValues();
+    cv.put(COLUMN_CATEGORYID, String.valueOf(categoryId));
+    String whereClause = COLUMN_ID+ "=" + rowId;
+    return writableDatabase.update(NAME, cv, whereClause, null);
+
+}
+    public static int updateNoteColumn(SQLiteDatabase writableDatabase, int rowId, String note){
         ContentValues cv = new ContentValues();
-        cv.put(COLUMN_CATEGORYID, String.valueOf(categoryId));
+        cv.put(COLUMN_NOTE, note);
+        String whereClause = COLUMN_ID+ "=" + rowId;
+        return writableDatabase.update(NAME, cv, whereClause, null);
+
+    }
+    public static int updateVisitedColumn(SQLiteDatabase writableDatabase, int rowId, boolean visited){
+        ContentValues cv = new ContentValues();
+        int i = visited? 1:0;
+        cv.put(COLUMN_VISIT, String.valueOf(i));
         String whereClause = COLUMN_ID+ "=" + rowId;
         return writableDatabase.update(NAME, cv, whereClause, null);
 
@@ -154,6 +175,7 @@ myDB.update(TableName, cv, "_id="+id, null);
 
 */
     public static String getName(Cursor cursor){ return getString(cursor, COLUMN_NAME);}
+    public static String getNote(Cursor cursor){ return getString(cursor, COLUMN_NOTE);}
     public static double getLat(Cursor cursor){ return getDouble(cursor, COLUMN_LAT);}
     public static double getLong(Cursor cursor){ return getDouble(cursor, COLUMN_LONG);}
     public static boolean getVisited(Cursor cursor){ return getBoolean(cursor, COLUMN_VISIT);}

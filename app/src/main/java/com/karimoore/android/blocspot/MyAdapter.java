@@ -8,6 +8,8 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -28,6 +30,9 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
     public static interface Delegate {
        //public void onItemClicked(ItemAdapter itemAdapter, RssItem rssItem);
         public void onLongClick(int rowId);
+        public void onNoteChanged(int rowId, String note);
+        public void onVisitedChanged(int rowId, boolean visited);
+        public void hideKeyboard(View v);
     }
 
 
@@ -56,6 +61,8 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
         private static final String TAG = "MyViewHolder";
         // each data item is just a string in this case
         public TextView mNameTextView;
+        public EditText mNoteEditText;
+        public Button mDoneButton;
         public ImageButton visitedButton; // also has a style
         public ImageButton menuButton;
         int rowId;
@@ -63,11 +70,43 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
         public MyViewHolder(View v) {
             super(v);
             mNameTextView = (TextView) v.findViewById(R.id.info_name);
+            mNoteEditText = (EditText) v.findViewById(R.id.info_note);
+            mDoneButton = (Button) v.findViewById(R.id.edit_txt_done_button);
             visitedButton = (ImageButton) v.findViewById(R.id.visited_image_button);
            menuButton = (ImageButton) v.findViewById(R.id.item_menu_button);
             v.setOnClickListener(this);
             v.setOnLongClickListener(this);
             v.setLongClickable(true);
+            mNoteEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                // if focused is on editing note show the "done button
+                @Override
+                public void onFocusChange(View v, boolean hasFocus) {
+                    if (hasFocus == false)
+                        mDoneButton.setVisibility(View.GONE);
+                    else
+                        mDoneButton.setVisibility(View.VISIBLE);
+                    Log.d(TAG, "focus changed for " + getAdapterPosition());
+                }
+            });
+
+            mDoneButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (getDelegate() != null) {
+                        getDelegate().onNoteChanged(rowId, mNoteEditText.getText().toString());
+                        getDelegate().hideKeyboard(v);
+                    }
+                }
+            });
+            visitedButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d(TAG, "Clicked on visited");
+
+                }
+            });
+
+
         }
         // call some bindData(data); called from adapter in the onBindViewHolder
 /*
@@ -102,7 +141,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
             //newFragment.setFilterResultsListener(this);
             if (getDelegate() != null)
                 getDelegate().onLongClick(rowId);
-
             return true;
         }
     }
@@ -151,6 +189,10 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
         // name field
         holder.mNameTextView.setText(mDataset.get(position).getName()); // connect to datasource here
 
+        // get note field
+        holder.mNoteEditText.setText(mDataset.get(position).getNote());
+
+
 
         //// get the category information
         long catId = mDataset.get(position).getCatId();
@@ -192,7 +234,8 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
                     holder.visitedButton.setImageResource(backgroundColor); //needs a resource id of drawable not color.
                 }
                 holder.visitedButton.setTag(mDataset.get(pos));
-                //UPDATE DATABASE  when?
+
+                getDelegate().onVisitedChanged(pos+1, mDataset.get(pos).isVisited());
                 Log.d(TAG, "Clicked Button for :" + " " + point.getName() + "is visited: " + mDataset.get(pos).isVisited());
             }
         });

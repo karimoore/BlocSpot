@@ -10,6 +10,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 
 import com.karimoore.android.blocspot.Api.Model.Category;
 import com.karimoore.android.blocspot.Api.Model.Point;
@@ -26,6 +27,9 @@ public class MyListFragment extends Fragment implements MyAdapter.Delegate {
 
     public static interface Delegate {
         public void onItemLongClicked(int rowId);
+        public void onItemNoteChanged(int rowId, String note);
+        public void onItemVisitedChanged(int rowId, boolean visited);
+
         //public void onItemContracted(RssItemListFragment rssItemListFragment, RssItem rssItem);
     }
     private WeakReference<Delegate> delegate;
@@ -106,6 +110,22 @@ public class MyListFragment extends Fragment implements MyAdapter.Delegate {
     public void onLongClick(int rowId) {
         delegate.get().onItemLongClicked(rowId);
 
+
+    }
+
+    @Override
+    public void onNoteChanged(int rowId, String note) {
+        delegate.get().onItemNoteChanged(rowId, note);
+    }
+    @Override
+    public void onVisitedChanged(int rowId, boolean visited) {
+        delegate.get().onItemVisitedChanged(rowId, visited);
+    }
+
+    @Override
+    public void hideKeyboard(View v) {
+        InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
     }
     //--------------------------------------------------------

@@ -11,8 +11,8 @@ public class YelpPoint extends Point {
         return displayAddress;
     }
 
-    public YelpPoint(long rowId, String name, double latitude, double longitude, String displayAddress, boolean visited, long catId) {
-        super(rowId, name, latitude, longitude, visited, catId);
+    public YelpPoint(long rowId, String name, double latitude, double longitude, String displayAddress, String note, boolean visited, long catId) {
+        super(rowId, name, latitude, longitude, visited, catId, note);
         this.displayAddress = displayAddress;
     }
 }

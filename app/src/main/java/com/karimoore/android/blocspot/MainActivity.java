@@ -211,6 +211,48 @@ public class MainActivity extends AppCompatActivity implements CategoryFilterDia
         showAssignCategoryDialog(rowId);
     }
 
+    @Override
+    public void onItemNoteChanged(int rowId, String note) {
+        BlocSpotApplication.getSharedDataSource().updateNoteForPoint(rowId, note);
+        BlocSpotApplication.getSharedDataSource().fetchAllPoints(new DataSource.Callback<List<Point>>() {
+            @Override
+            public void onSuccess(List<Point> points) {
+                currentPoints.clear();
+                currentPoints.addAll(points);
+                mapFragment.update(points);
+                listFragment.update(points);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+
+            }
+        });
+
+
+
+
+    }
+
+    @Override
+    public void onItemVisitedChanged(int rowId, boolean visited) {
+        BlocSpotApplication.getSharedDataSource().updateVisitedForPoint(rowId, visited);
+        BlocSpotApplication.getSharedDataSource().fetchAllPoints(new DataSource.Callback<List<Point>>() {
+            @Override
+            public void onSuccess(List<Point> points) {
+                currentPoints.clear();
+                currentPoints.addAll(points);
+                mapFragment.update(points);
+                listFragment.update(points);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+
+            }
+        });
+    }
+
     //-----------------MyMapsFragment.Delegate-------------------------
     @Override
     public void addYelpPoint(Point point) {
@@ -326,6 +368,7 @@ public class MainActivity extends AppCompatActivity implements CategoryFilterDia
 
              return super.onOptionsItemSelected(item);
     }
+
 
     public void showAssignCategoryDialog(int rowId) {
         CategoryAddDialog newFragment = new CategoryAddDialog();

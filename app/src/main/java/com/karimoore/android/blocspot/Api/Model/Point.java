@@ -11,17 +11,19 @@ public class Point extends Model implements Serializable{
     private double longitude;
     private boolean visited;
     private long catId;
+    private String note;
 
 
 
 
-    public Point(long rowId, String name, double latitude, double longitude, boolean visited, long catId) {
+    public Point(long rowId, String name, double latitude, double longitude, boolean visited, long catId, String note) {
         super(rowId);
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
         this.visited = visited;
         this.catId = catId;
+        this.note = note;
     }
 
     public boolean isVisited() {
@@ -42,6 +44,10 @@ public class Point extends Model implements Serializable{
 
     public String getName() {
         return name;
+    }
+
+    public String getNote() {
+        return note;
     }
 
     public long getCatId() {

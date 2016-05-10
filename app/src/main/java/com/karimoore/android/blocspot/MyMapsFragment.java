@@ -21,6 +21,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -284,6 +285,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
 //-------------OnMarkerClickListener-------------
     @Override
     public boolean onMarkerClick(Marker marker) {
+        final EditText note;
         final String id = marker.getId();
         Log.d(TAG, "Clicked on " + id);
         if (markersToYelpPoint.get(id) != null) {
@@ -294,6 +296,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
             View view = inflater.inflate(R.layout.details_point_on_map_dialog, null);
             TextView description = (TextView) view.findViewById(R.id.description);
             description.setText(markersToYelpPoint.get(id).getDisplayAddress());
+            note = (EditText) view.findViewById(R.id.note_edit_txt);
+            note.setText(markersToYelpPoint.get(id).getNote());
             Button addButton = (Button) view.findViewById(R.id.details_add_button);
             addButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -305,7 +309,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
                     Point point = new Point(-1, markersToYelpPoint.get(id).getName(),
                             markersToYelpPoint.get(id).getLatitude(),
                             markersToYelpPoint.get(id).getLongitude(),
-                            false, -1);
+                            false, -1, note.getText().toString());
+                    //markersToYelpPoint.get(id).getNote());
+
                     delegate.get().addYelpPoint(point);
                     popup.dismiss();
                     //  turn off onclicklistener

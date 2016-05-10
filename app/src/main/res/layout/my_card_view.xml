@@ -37,13 +37,37 @@
                     android:layout_height="match_parent"
                     android:layout_centerVertical="true"
                     android:textSize="20sp" />
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
                 <EditText
                     android:id="@+id/info_note"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:textSize="12sp"
-                    android:text="This is a simple note about the item " />
+                    android:scrollHorizontally="false"
+                    android:inputType="textCapSentences|textMultiLine"
+
+                    android:text="This is a simple note about the item "/>
+<!--
+ "done" cannot be added to return button if you want multiple lines
+                    android:imeOptions="actionDone"
+                    android:imeActionLabel="Done"
+-->
+
+                    <!--android:singleLine="true"-->
+
+                    <Button
+                        android:id="@+id/edit_txt_done_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/info_note"
+                        android:layout_alignParentRight="true"
+                        android:fitsSystemWindows="true"
+                        android:visibility="gone"
+                        android:text="Change Note"/>
+                </RelativeLayout>
 
             </LinearLayout>
 
