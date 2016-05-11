@@ -38,6 +38,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -241,6 +242,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
 
         // if category id is -1 = a category has not been assigned.
         List<Category> categories = new ArrayList<Category>();
+        BitmapDescriptor icon;
+        BitmapDescriptor visitedIcon = BitmapDescriptorFactory.fromResource(R.drawable.tick);
         categories.addAll(mCategories);
         for (int i = 0; i < points.size(); i++) {
             LatLng pointOfInterest = new LatLng(points.get(i).getLatitude(), points.get(i).getLongitude());
@@ -251,11 +254,20 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
             else {
                 markerColor = categories.get((int) points.get(i).getCatId() - 1).getMarkerColor();
             }
-                    mMap.addMarker(
+
+            if (points.get(i).isVisited()) {
+                icon = visitedIcon;
+            }
+            else {
+                icon = BitmapDescriptorFactory.defaultMarker(markerColor);
+
+
+            }
+            mMap.addMarker(
                     new MarkerOptions()
                             .position(pointOfInterest)
                             .title(points.get(i).getName() + String.valueOf(i))
-                            .icon(BitmapDescriptorFactory.defaultMarker(markerColor)));
+                            .icon(icon));
             mMap.moveCamera(CameraUpdateFactory.newLatLng(pointOfInterest));
 
         }
