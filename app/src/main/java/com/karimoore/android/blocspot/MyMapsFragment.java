@@ -530,29 +530,31 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
     public void populateGeofenceList() {
 
         for (int i = 0; i < mapPoints.size(); i++) {
+            //only place geofence around places not visited before
+            if (!mapPoints.get(i).isVisited()) {
+                mGeofenceList.add(new Geofence.Builder()
+                        // Set the request ID of the geofence. This is a string to identify this
+                        // geofence.
+                        .setRequestId(mapPoints.get(i).getName())
 
-            mGeofenceList.add(new Geofence.Builder()
-                    // Set the request ID of the geofence. This is a string to identify this
-                    // geofence.
-                    .setRequestId(mapPoints.get(i).getName())
+                                // Set the circular region of this geofence.
+                        .setCircularRegion(
+                                mapPoints.get(i).getLatitude(),
+                                mapPoints.get(i).getLongitude(),
+                                GEOFENCE_RADIUS_IN_METERS
+                        )
 
-                            // Set the circular region of this geofence.
-                    .setCircularRegion(
-                            mapPoints.get(i).getLatitude(),
-                            mapPoints.get(i).getLongitude(),
-                            GEOFENCE_RADIUS_IN_METERS
-                    )
+                                // Set the expiration duration of the geofence. This geofence gets automatically
+                                // removed after this period of time.
+                        .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
 
-                            // Set the expiration duration of the geofence. This geofence gets automatically
-                            // removed after this period of time.
-                    .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                                // Set the transition types of interest. Alerts are only generated for these
+                                // transition. We track entry and exit transitions in this sample.
+                        .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
 
-                            // Set the transition types of interest. Alerts are only generated for these
-                            // transition. We track entry and exit transitions in this sample.
-                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
-
-                            // Create the geofence.
-                    .build());
+                                // Create the geofence.
+                        .build());
+            }
         }
     }
 
